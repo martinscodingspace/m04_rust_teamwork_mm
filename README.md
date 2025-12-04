@@ -12,7 +12,7 @@ entwickelt werden.
 Die Aufgabe besteht darin, ein Datenbanksystem zu implementieren, das einfache Tabellen
 unterstuetzt, Daten persistent speichert und eine minimale Abfragesprache verarbeiten
 kann. Das fertige Programm soll ueber eine Kommandozeilenschnittstelle steuerbar sein
-und grundlegende Operationen wie INSERT, SELECT, DELETE und UPDATE erm¨oglichen.
+und grundlegende Operationen wie INSERT, SELECT, DELETE und UPDATE ermöglichen.
 
 1.3 Funktionale Anforderungen
 
@@ -24,7 +24,7 @@ Paaren haelt.
 ein eigenes Enum ist.
 
 1.3.2 Persistente Speicherung
-• Entwickelt ein Modul storage, das Tabellen im JSON- oder Bin¨arformat speichert.
+• Entwickelt ein Modul storage, das Tabellen im JSON- oder Binärformat speichert.
 • Implementiert Funktionen zum Laden und Speichern einer gesamten Datenbankinstanz.
 • Fehler sollen ¨uber Result-Typen sauber kommuniziert werden.
 
