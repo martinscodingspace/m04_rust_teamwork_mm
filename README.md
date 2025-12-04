@@ -1,3 +1,5 @@
+MM-Teamwork presents:
+
 # m04_rust_teamwork_mm
 
 1 Projektaufgabe: Mini-Datenbank mit Query-Engine
