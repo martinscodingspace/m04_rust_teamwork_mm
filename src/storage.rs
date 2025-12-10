@@ -50,6 +50,7 @@ pub fn save(db: &HashMap<String, EnCustomer>) {
 pub fn insert(db: &mut HashMap<String, EnCustomer>) {
     let mut name = String::new();
     let mut volume = String::new();
+    let mut newsstring = String::new();
 
     println!("Name eingeben:");
     std::io::stdin().read_line(&mut name).unwrap();
@@ -58,16 +59,29 @@ pub fn insert(db: &mut HashMap<String, EnCustomer>) {
     std::io::stdin().read_line(&mut volume).unwrap();
     let volume: i32 = volume.trim().parse().unwrap();
 
+    println!("Newsletterstatus eingeben (ja/nein):");
+    std::io::stdin().read_line(&mut newsstring).unwrap();
+
+    let newsletter = match newsstring.trim().to_lowercase().as_str() {
+        "ja" | "j" | "true" => true,
+        "nein" | "n" | "false" => false,
+        _ => {
+            println!("Ungültige Eingabe – Newsletterstatus wird als 'false' gesetzt.");
+            false
+        }
+    };
+
     db.insert(
         name.trim().to_string(),
         EnCustomer::Status(CustomerValue {
             sales_volume: volume,
-            newsletter: true,
+            newsletter,
         }),
     );
 
     println!("Eintrag hinzugefügt.");
 }
+
 
 pub fn select(db: &HashMap<String, EnCustomer>) {
     let mut name = String::new();
@@ -97,6 +111,7 @@ pub fn delete(db: &mut HashMap<String, EnCustomer>) {
 pub fn update(db: &mut HashMap<String, EnCustomer>) {
     let mut name = String::new();
     let mut new_volume = String::new();
+    let mut newsstring = String::new();
 
     println!("Name eingeben:");
     std::io::stdin().read_line(&mut name).unwrap();
@@ -105,8 +120,21 @@ pub fn update(db: &mut HashMap<String, EnCustomer>) {
     std::io::stdin().read_line(&mut new_volume).unwrap();
     let new_volume: i32 = new_volume.trim().parse().unwrap();
 
+    println!("Newsletterstatus eingeben (ja/nein):");
+    std::io::stdin().read_line(&mut newsstring).unwrap();
+
+    let newsletter = match newsstring.trim().to_lowercase().as_str() {
+        "ja" | "j" | "true" => true,
+        "nein" | "n" | "false" => false,
+        _ => {
+            println!("Ungültige Eingabe – Newsletterstatus wird als 'false' gesetzt.");
+            false
+        }
+    };
+
     if let Some(EnCustomer::Status(cust)) = db.get_mut(name.trim()) {
         cust.sales_volume = new_volume;
+        cust.newsletter = newsletter;
         println!("Eintrag aktualisiert.");
     } else {
         println!("Eintrag nicht gefunden.");
