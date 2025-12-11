@@ -71,6 +71,7 @@
 //!    werden.
 //!  – Der Index soll SELECT-Abfragen beschleunigen.
 
+mod storage;  
 mod executor;
 use std::process::Command;
 
