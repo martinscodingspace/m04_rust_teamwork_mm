@@ -100,8 +100,8 @@ pub fn insert_data() {
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut inp).unwrap();
         new = if inp.to_string() == "j" || inp.to_string() == "J" {true} else {false};
+        let _ret = insert_json(nom, vol, new);
     }
-    let _ret = insert_json(nom, vol, new);
 }
 
 pub fn select_data() {
@@ -138,3 +138,4 @@ pub fn update_data() {
     let _ret = update_json();
 
 }
+
