@@ -72,6 +72,7 @@
 //!  – Der Index soll SELECT-Abfragen beschleunigen.
 
 mod modules;
+
 use crate::modules::executor;
 use std::process::Command;
 
@@ -80,12 +81,13 @@ fn main() {
     println!("================================================================================");
     println!("=== Minidatenbank © 2025 Kundenverwaltungsprogramm inkl. Umsatz & Newsletter ===");
     println!("================================================================================");
-    executor::start(); // Zum Hauptmenü
+
+    executor::start();
+
     println!();
     println!("================================================================================");
     println!("=== Programm - ENDE     Vielen Dank und bis zum nächsten Mal                 ===");
     println!("================================================================================");
-    println!("\n");
 }
 
 pub fn clear_screen() {
@@ -96,6 +98,7 @@ pub fn clear_screen() {
             .status()
             .unwrap();
     }
+
     #[cfg(target_os = "linux")]
     {
         Command::new("clear")
