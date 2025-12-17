@@ -1,141 +1,114 @@
-use crate::modules::graph_tools;
-use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
-use std::io::{self, Read, Write};
-use std::path::Path;
-use colored::Colorize;
+use serde::{Serialize, Deserialize};
+use std::fs;
 
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum EnValue {
-    Werte { sales_volume: i64, newsletter: bool },
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CustomerValue {
+    pub sales_volume: i32,
+    pub newsletter: bool,
 }
 
-const FILE_PATH: &str = "mm_database.json";
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum EnCustomer {
+    Status(CustomerValue),
+}
 
-pub fn insert_json(nom:String, vol: i64, new: bool) -> std::io::Result<()> {
-    let mut map: HashMap<String, EnValue> = HashMap::new();
-    map.insert(
-        nom.to_string(),
-        EnValue::Werte { sales_volume: vol, newsletter: new },
+const FILE_NAME: &str = "mm_database.json";
+
+pub fn load() -> HashMap<String, EnCustomer> {
+    match fs::read_to_string(FILE_NAME) {
+        Ok(content) => serde_json::from_str(&content).unwrap_or_else(|_| {
+            println!("JSON beschädigt, neue Datenbank wird erstellt.");
+            HashMap::new()
+        }),
+        Err(_) => {
+            println!("Datei nicht gefunden, neue Datenbank wird erstellt.");
+            HashMap::new()
+        }
+    }
+}
+
+pub fn save(db: &HashMap<String, EnCustomer>) {
+    let json = serde_json::to_string_pretty(db).unwrap();
+    fs::write(FILE_NAME, json).unwrap();
+}
+
+pub fn insert(db: &mut HashMap<String, EnCustomer>) {
+    use std::io::{self, Read};
+
+    let mut name = String::new();
+    let mut volume = String::new();
+    let mut newsstring = String::new();
+
+    println!("Name eingeben:");
+    io::stdin().read_line(&mut name).unwrap();
+
+    println!("Umsatz eingeben:");
+    io::stdin().read_line(&mut volume).unwrap();
+    let volume: i32 = volume.trim().parse().unwrap();
+
+    println!("Newsletterstatus eingeben (ja/nein):");
+    io::stdin().read_line(&mut newsstring).unwrap();
+
+    let newsletter = matches!(newsstring.trim().to_lowercase().as_str(), "ja" | "j" | "true");
+
+    db.insert(
+        name.trim().to_string(),
+        EnCustomer::Status(CustomerValue {
+            sales_volume: volume,
+            newsletter,
+        }),
     );
 
-
-    let file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .append(true)   // Leert die Datei vor dem Schreiben, falls gewünscht
-        .open(FILE_PATH)?;
-
-    let _ =serde_json::to_writer_pretty(file, &map)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e));
-
-    println!("HashMap wurde erfolgreich nach  mm_database.json  geschrieben.");
-
-    Ok(()) 
+    println!("Eintrag hinzugefügt.");
 }
 
-pub fn update_json() -> std::io::Result<()> {
-    
-    let mut map = load_from_json_file(FILE_PATH)?;
-    let mut file = File::open(FILE_PATH)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
+pub fn select(db: &HashMap<String, EnCustomer>) {
+    let mut name = String::new();
+    println!("Name suchen:");
+    std::io::stdin().read_line(&mut name).unwrap();
 
-    // Deserialisieren
-    let map: HashMap<String, EnValue> = serde_json::from_str(&contents).expect("Failed to parse JSON");
-
-    println!("\nNach dem Update geladene Daten: {:?}", map);
-    Ok(())
-}
-
-pub fn load_from_json_file(path: &str) -> std::io::Result<HashMap<String, EnValue>> {
-    
-    if !Path::new(path).exists() || std::fs::metadata(path)?.len() == 0 {
-        return Ok(HashMap::new());
-    }
-
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    // Deserialisieren
-    serde_json::from_str(&contents)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
-}
-
-pub fn insert_data() {
-    let mut inp = String::new();
-    let mut nom = String::new();
-    let mut vol = 0i64;
-    let mut new = false;
-    loop {
-        inp.clear();
-        println!();
-        println!("{}", graph_tools::get_sep().magenta());
-        println!("{}", graph_tools::get_umenu_insert().magenta());
-        println!("{}", graph_tools::get_sep().magenta());
-        print!("=== Name des Kunden   < x = zurück >   :        ");
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut inp).unwrap();
-        nom = inp.trim().to_string();
-        if nom == "x" || nom == "X" { break; }
-        inp.clear();
-        print!("=== Umsatz-Volumen                     :        ");
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut inp).unwrap();
-        let vol = match inp.trim().parse::<i64>() {
-            Ok(vol) => vol,
-            Err(_) => {
-                println!();
-                println!("{}", graph_tools::get_sep().red());
-                println!("{}", graph_tools::get_error_liner().red());
-                println!("{}", graph_tools::get_sep().red());
-                continue;
-            }
-        };
-        inp.clear();
-        print!("=== Newsletter vorhanden   ( j / n )   :        ");
-        io::stdout().flush().unwrap();
-        io::stdin().read_line(&mut inp).unwrap();
-        new = if inp.to_string() == "j" || inp.to_string() == "J" {true} else {false};
-        let _ret = insert_json(nom, vol, new);
+    match db.get(name.trim()) {
+        Some(c) => println!("Gefunden: {:?}", c),
+        None => println!("Kein Eintrag gefunden!"),
     }
 }
 
-pub fn select_data() {
-    let mut inp = String::new();
-    let mut nom = String::new();
-    println!();
-    println!("{}", graph_tools::get_sep().cyan());
-    println!("{}", graph_tools::get_umenu_select().cyan());
-    println!("{}", graph_tools::get_sep().cyan());
-    print!("=== Name des Kunden   < x = zurück >   :        ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut inp).unwrap();
-    nom = inp.trim().to_string();
+pub fn delete(db: &mut HashMap<String, EnCustomer>) {
+    let mut name = String::new();
+    println!("Name löschen:");
+    std::io::stdin().read_line(&mut name).unwrap();
+
+    if db.remove(name.trim()).is_some() {
+        println!("Eintrag gelöscht.");
+    } else {
+        println!("Eintrag nicht gefunden.");
+    }
 }
 
-pub fn delete_data() {
-    let mut inp = String::new();
-    let mut nom = String::new();
-    println!();
-    println!("{}", graph_tools::get_sep().red());
-    println!("{}", graph_tools::get_umenu_delete().red());
-    println!("{}", graph_tools::get_sep().red());
-    print!("=== Name des Kunden   < x = zurück >   :        ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut inp).unwrap();
-    nom = inp.trim().to_string();
-}
+pub fn update(db: &mut HashMap<String, EnCustomer>) {
+    let mut name = String::new();
+    let mut new_volume = String::new();
+    let mut newsstring = String::new();
 
-pub fn update_data() {
-    println!();
-    println!("{}", graph_tools::get_sep().magenta());
-    println!("{}", graph_tools::get_umenu_update().magenta());
-    println!("{}", graph_tools::get_sep().magenta());
-    let _ret = update_json();
+    println!("Name eingeben:");
+    std::io::stdin().read_line(&mut name).unwrap();
 
+    println!("Neuer Umsatz:");
+    std::io::stdin().read_line(&mut new_volume).unwrap();
+    let new_volume: i32 = new_volume.trim().parse().unwrap();
+
+    println!("Newsletterstatus eingeben (ja/nein):");
+    std::io::stdin().read_line(&mut newsstring).unwrap();
+
+    let newsletter = matches!(newsstring.trim().to_lowercase().as_str(), "ja" | "j" | "true");
+
+    if let Some(EnCustomer::Status(cust)) = db.get_mut(name.trim()) {
+        cust.sales_volume = new_volume;
+        cust.newsletter = newsletter;
+        println!("Eintrag aktualisiert.");
+    } else {
+        println!("Eintrag nicht gefunden.");
+    }
 }
 
