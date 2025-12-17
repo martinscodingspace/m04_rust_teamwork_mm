@@ -10,8 +10,6 @@ use colored::Colorize;
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum EnValue {
     Werte { sales_volume: i64, newsletter: bool },
-    // Du könntest auch andere Varianten hinzufügen, falls nötig
-    // Leere,
 }
 
 const FILE_PATH: &str = "mm_database.json";
@@ -23,14 +21,11 @@ pub fn insert_json(nom:String, vol: i64, new: bool) -> std::io::Result<()> {
         EnValue::Werte { sales_volume: vol, newsletter: new },
     );
 
-    // let mut map = HashMap::new();
-    // map.insert(nom.to_string(), ValueEnum::SalesVolume(vol));
-    // map.insert(new.to_string(), ValueEnum::Newsletter(new));
 
     let file = OpenOptions::new()
         .write(true)
         .create(true)
-        .truncate(false)   // Leert die Datei vor dem Schreiben, falls gewünscht
+        .append(true)   // Leert die Datei vor dem Schreiben, falls gewünscht
         .open(FILE_PATH)?;
 
     let _ =serde_json::to_writer_pretty(file, &map)
@@ -38,17 +33,17 @@ pub fn insert_json(nom:String, vol: i64, new: bool) -> std::io::Result<()> {
 
     println!("HashMap wurde erfolgreich nach  mm_database.json  geschrieben.");
 
-    Ok(()) // Alles erfolgreich
+    Ok(()) 
 }
 
 pub fn update_json() -> std::io::Result<()> {
-    // 1. Inhalt der JSON-Datei lesen
+    
     let mut map = load_from_json_file(FILE_PATH)?;
     let mut file = File::open(FILE_PATH)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    // Deserialisieren des JSON-Strings zurück in die HashMap
+    // Deserialisieren
     let map: HashMap<String, EnValue> = serde_json::from_str(&contents).expect("Failed to parse JSON");
 
     println!("\nNach dem Update geladene Daten: {:?}", map);
@@ -56,7 +51,7 @@ pub fn update_json() -> std::io::Result<()> {
 }
 
 pub fn load_from_json_file(path: &str) -> std::io::Result<HashMap<String, EnValue>> {
-    // Falls Datei nicht existiert oder leer ist
+    
     if !Path::new(path).exists() || std::fs::metadata(path)?.len() == 0 {
         return Ok(HashMap::new());
     }
@@ -65,7 +60,7 @@ pub fn load_from_json_file(path: &str) -> std::io::Result<HashMap<String, EnValu
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    // Deserialisieren des JSON-Strings zurück in die HashMap
+    // Deserialisieren
     serde_json::from_str(&contents)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
 }
@@ -141,4 +136,5 @@ pub fn update_data() {
     println!("{}", graph_tools::get_umenu_update().magenta());
     println!("{}", graph_tools::get_sep().magenta());
     let _ret = update_json();
+
 }
