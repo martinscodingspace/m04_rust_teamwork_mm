@@ -1,17 +1,17 @@
-// mod storage;
 use crate::modules::storage;
-use crate::modules::storage::insert_data;
-use crate::modules::storage::select_data;
-use crate::modules::storage::delete_data;
-use crate::modules::storage::update_data;
-use colored::Colorize;
 use crate::modules::graph_tools;
+use colored::Colorize;
+use std::collections::HashMap;
 use std::io::{self, Write};
+
 pub fn start() {
+    let mut db: HashMap<String, storage::EnCustomer> = storage::load();
+
     let mut eingabe = String::new();
-    let mut auswahl;
+
     loop {
         eingabe.clear();
+
         println!();
         println!("{}", graph_tools::get_sep().blue());
         println!("{}", "=== Willkommen im Haupt-MENÜ           Bitte folgende Auswahl treffen:       ===".blue());
@@ -22,27 +22,30 @@ pub fn start() {
         println!("{}", "=== UPDATE / Datensatz Aktualisieren   PRESS  < u >                          ===".blue());
         println!("{}", "=== END    / Programm  BEENDEN         PRESS  < x >                          ===".yellow());
         println!("{}", graph_tools::get_sep().blue());
-        print!("=== Bitte Ihre Auswahl                 :        ");
+
+        print!("=== Bitte Ihre Auswahl                 : ");
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut eingabe).unwrap();
-        eingabe = eingabe.trim().to_lowercase();
-        auswahl = eingabe.to_string();
-        println!("{}", graph_tools::get_sep().blue());
-        if eingabe == "x" || eingabe == "X" {
-            break;
+        let auswahl = eingabe.trim().to_lowercase();
+
+        match auswahl.as_str() {
+            "i" => {
+                storage::insert(&mut db);
+                storage::save(&db);
+            }
+            "s" => storage::select(&db),
+            "d" => {
+                storage::delete(&mut db);
+                storage::save(&db);
+            }
+            "u" => {
+                storage::update(&mut db);
+                storage::save(&db);
+            }
+            "x" => break,
+            _ => {
+                println!("{}", graph_tools::get_error_liner().red());
+            }
         }
-        if eingabe != "i" && eingabe != "s" && eingabe != "d" && eingabe != "u" {
-            println!();
-            println!("{}", graph_tools::get_sep().red());
-            println!("{}", graph_tools::get_error_liner().red());
-            println!("{}", graph_tools::get_sep().red());
-            continue;
-        }
-        if auswahl == "i" { let _ = storage::insert_data(); };
-        if auswahl == "s" { storage::select_data(); };
-        if auswahl == "d" { storage::delete_data(); };
-        if auswahl == "u" { storage::update_data(); };
     }
-
 }
-
